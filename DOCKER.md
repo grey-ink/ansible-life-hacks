@@ -41,7 +41,9 @@ CMD ["ansible-playbook" "--version"]
 ```
 
 ### Списки зависимостей
-Нужно положить в директорию рядом с Dockerfile или поменять в Dockerfile пути к ним
+Вынесены в отдельные файлы, чтоб реже менять основной файл.
+
+Файлы нужно положить в директорию рядом с Dockerfile или поменять в Dockerfile пути к ним
 #### requirements.txt
 ```text
 ansible-lint<25
