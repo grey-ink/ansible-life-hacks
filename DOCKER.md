@@ -8,7 +8,7 @@
 ```dockerfile
 FROM python:3.12-alpine
 
-LABEL org.opencontainers.image.title="ansible for infrastructure as code"
+LABEL org.opencontainers.image.title="ansible in docker"
 
 WORKDIR /tmp
 
@@ -22,7 +22,6 @@ RUN apk add --no-cache $(cat ./apks.txt) \
         musl-dev \
         cargo \
         gcc \
-    && update-ca-certificates \
     && pip3 install --upgrade pip cffi cryptography wheel \
     && pip3 install -r ./requirements.txt \
     && apk del build-dependencies \
