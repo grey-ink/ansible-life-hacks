@@ -1,77 +1,8 @@
 [BACK TO MAIN](./README.md)
 
 # ansible в docker
-В какой-то момент возникла необзодимость готовить стандартный комплект из версий ansible, линтеров, зависимостей и дополнительных модулей и прочего. \
-Без этого, каждый новый пользователь мучился с подготовкой окружения сам и все равно получал непредсказуемые результаты запуска плейбуков.
+В ansible_build лежит пример организации сборки контейнера ansible для работы через gitlab-ci
 
-Итак, подготовка образа:
-```dockerfile
-FROM python:3.12-alpine
+Сначала нужно посмотреть в ansible_build/.gitlab-ci.yml - там описан процесс сборки
 
-LABEL org.opencontainers.image.title="ansible in docker"
-
-WORKDIR /tmp
-
-COPY ./*.txt .
-
-RUN apk add --no-cache $(cat ./apks.txt) \
-    && apk --no-cache add --virtual \
-        build-dependencies \
-        build-base \
-        libffi-dev \
-        musl-dev \
-        cargo \
-        gcc \
-    && pip3 install --upgrade pip cffi cryptography wheel \
-    && pip3 install -r ./requirements.txt \
-    && apk del build-dependencies \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /root/.cache/pip \
-    && rm -rf /root/.cargo
-RUN mkdir /ansible \
-    && mkdir -p /etc/ansible \
-    && echo 'localhost' > /etc/ansible/hosts \
-    && ln -s /usr/local/lib/python3.12 /usr/local/lib/python3.9 \
-    && ln -s /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.9/dist-packages
-
-WORKDIR /ansible
-
-CMD ["ansible-playbook" "--version"]
-```
-
-### Списки зависимостей
-Вынесены в отдельные файлы, чтоб реже менять основной файл.
-
-Файлы нужно положить в директорию рядом с Dockerfile или поменять в Dockerfile пути к ним
-#### requirements.txt
-```text
-ansible-lint<25
-ansible>=9,<10
-python-gitlab
-cryptography
-MarkupSafe
-kubernetes
-jmespath
-netaddr
-mitogen<=0.3.24
-jinja2
-hvac
-pbr
-ruamel.yaml.clib
-ruamel.yaml
-yamllint
-```
-#### apks.txt
-```text
-ca-certificates
-sshpass
-openssh
-openssl
-unzip
-rsync
-sudo
-curl
-wget
-tar
-git
-```
+Детали конфигурация Dockerfile и списоков компонентов лежат в остальных файлах

@@ -1,0 +1,51 @@
+# Сборка делается на раннере с включенным docker-in-docker
+stages:
+- build
+
+variables:
+# Если нужно добавить настройки прокси внутри контейнера docker
+#  HTTP_PROXY: "http://10.0.0.11:8080"
+#  HTTPS_PROXY: "http://10.0.0.11:8080"
+  NO_PROXY: "127.0.0.1, localhost, 10.0.0.0/8, docker"
+  DOCKER_VERSION: "26.1"
+  DOCKER_IMAGE_REPO: image_repo_name
+  DOCKER_IMAGE_NAME: ansible
+  DOCKER_IMAGE_TAG: ${CI_COMMIT_BRANCH}
+  DOCKER_REGISTRY: registry.local # nexus/harbor/etc
+
+.docker_build:
+  stage: build
+  image: "docker:${DOCKER_VERSION}"
+# Если нужно взять образ docker из внутреннего репозитория
+#  image: "${DOCKER_REGISTRY}/docker-hub-proxy/docker:${DOCKER_VERSION}"
+  services:
+  - name: "docker:${DOCKER_VERSION}-dind"
+# Если нужно взять образ docker из внутреннего репозитория
+#  - name: "${DOCKER_REGISTRY}/docker-hub-proxy/docker:${DOCKER_VERSION}-dind"
+  script:
+# Пароль и логин к репозиторию образов. Можно задать через gitlab variables в проекте
+  - echo ${DOCKER_REGISTRY_PASSWORD} > ~/harbor_password.txt
+  - cat ~/harbor_password.txt | docker login ${DOCKER_REGISTRY} --username ${DOCKER_REGISTRY_USER} --password-stdin
+
+  - DOCKER_BUILDKIT=1 docker build -f Dockerfile
+    --label "org.opencontainers.image.source"="${CI_PROJECT_URL}"
+    --label "org.opencontainers.image.created"="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+    --label "org.opencontainers.image.revision"="${CI_COMMIT_SHA}"
+    --label "org.opencontainers.image.ref.name"="${CI_COMMIT_REF_NAME}"
+    --tag ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+    .
+  - docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPO}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+  after_script:
+  - docker logout ${DOCKER_REGISTRY}
+
+# Если нужно переписать настройки сборки для другого окружения
+#docker_build_test:
+#  extends: .docker_build
+#  variables:
+#    HTTP_PROXY: "http://10.0.10.11:8080"
+#    HTTPS_PROXY: "http://10.0.10.11:8080"
+#    DOCKER_REGISTRY: nexus.domain.local
+#    DOCKER_REGISTRY_USER: $TEST_HARBOR_USERNAME
+#    DOCKER_REGISTRY_PASSWORD: $TEST_HARBOR_PASSWORD
+# Если нужно делать сборку на раннерах с определенными тэгами
+#  tags: [ "devops","docker","test" ]
