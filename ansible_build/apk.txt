@@ -1,0 +1,11 @@
+ca-certificates
+sshpass
+openssh
+openssl
+unzip
+rsync
+sudo
+curl
+wget
+tar
+git

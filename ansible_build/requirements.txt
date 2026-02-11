@@ -1,0 +1,16 @@
+ansible-lint<25
+ansible>=9,<10
+python-gitlab
+cryptography
+MarkupSafe
+kubernetes
+jmespath
+netaddr
+mitogen<=0.3.24
+jinja2
+hvac
+ansible-modules-hashivault
+pbr
+ruamel.yaml.clib
+ruamel.yaml
+yamllint
